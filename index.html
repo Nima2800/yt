@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>جستجوگر یوتیوب | بات بله</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;400;700&display=swap");
+      body {
+        font-family: "Vazirmatn", sans-serif;
+        background-color: #f8fafc;
+        overflow-x: hidden;
+      }
+      .bale-gradient {
+        background: linear-gradient(135deg, #2fb57a 0%, #1e7a54 100%);
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .loader {
+        border-top-color: #3498db;
+        animation: spinner 0.8s linear infinite;
+      }
+      @keyframes spinner {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      #introOverlay {
+        transition:
+          opacity 0.5s ease,
+          visibility 0.5s;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body class="p-4 max-w-lg mx-auto pb-10">
+    <!-- Intro / Guide Overlay -->
+    <div
+      id="introOverlay"
+      class="fixed inset-0 z-[100] bale-gradient flex items-center justify-center p-6 text-white"
+    >
+      <div class="text-center max-w-xs animate-in fade-in zoom-in duration-500">
+        <div
+          class="bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md"
+        >
+          <i class="fab fa-youtube text-4xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold mb-4">راهنمای مینی‌اپ</h1>
+        <div
+          class="bg-white/10 p-5 rounded-3xl backdrop-blur-sm text-sm leading-relaxed mb-8 text-right border border-white/10"
+        >
+          <p class="mb-3 flex items-start gap-2">
+            <i class="fas fa-info-circle mt-1"></i>
+            <span
+              >برای مشاهده نتایج و جستجو به صورت گرافیکی، به دلیل محدودیت‌های
+              یوتیوب نیاز به روشن بودن <b>VPN</b> دارید.</span
+            >
+          </p>
+          <p class="flex items-start gap-2">
+            <i class="fas fa-check-circle mt-1 text-green-300"></i>
+            <span
+              >نگران نباشید! مصرف حجم در اینجا بسیار ناچیز است و بخش اصلی دانلود
+              با اینترنت نیم‌بها در <b>بات بله</b> انجام می‌شود.</span
+            >
+          </p>
+        </div>
+        <button
+          onclick="closeIntro()"
+          class="w-full bg-white text-green-700 font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition-transform"
+        >
+          متوجه شدم، بزن بریم!
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Header -->
+    <div id="mainContent" class="opacity-0 transition-opacity duration-700">
+      <div class="sticky top-0 z-10 bg-f8fafc/80 backdrop-blur-md pt-2 pb-4">
+        <div class="relative shadow-xl rounded-2xl overflow-hidden glass-card">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="جستجوی ویدیو یا چسباندن لینک..."
+            class="w-full p-4 pr-12 border-none outline-none text-sm bg-transparent"
+          />
+          <button
+            onclick="searchYoutube()"
+            class="absolute left-2 top-2 bg-red-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-red-700 transition-colors"
+          >
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Container -->
+      <div id="results" class="space-y-4 mt-2">
+        <div class="text-center py-20 text-gray-300">
+          <i class="fas fa-search text-6xl mb-4 opacity-20"></i>
+          <p class="text-sm">منتظر جستجوی شما هستیم...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Screen Detail Modal -->
+    <div
+      id="videoModal"
+      class="fixed inset-0 bg-black/70 z-50 hidden backdrop-blur-sm flex items-end sm:items-center justify-center"
+    >
+      <div
+        class="bg-white w-full max-w-lg sm:rounded-3xl rounded-t-3xl overflow-hidden flex flex-col max-h-[95vh] shadow-2xl animate-in slide-in-from-bottom duration-300"
+      >
+        <!-- Video Thumbnail Area -->
+        <div class="relative h-52 shrink-0">
+          <img id="modalThumb" src="" class="w-full h-full object-cover" />
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"
+          ></div>
+          <button
+            onclick="closeModal()"
+            class="absolute top-4 right-4 bg-black/40 text-white w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="absolute bottom-4 right-4 left-4">
+            <h2
+              id="modalTitle"
+              class="text-white font-bold text-sm line-clamp-2 leading-tight"
+            ></h2>
+          </div>
+        </div>
+
+        <!-- Scrollable Content Section -->
+        <div class="p-5 overflow-y-auto flex-1 custom-scrollbar">
+          <!-- Stats Grid -->
+          <div
+            class="grid grid-cols-3 gap-2 mb-6 bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center"
+          >
+            <div>
+              <p class="text-[9px] text-gray-400 font-bold uppercase mb-1">
+                بازدید
+              </p>
+              <p id="statViews" class="text-xs font-bold text-gray-700">-</p>
+            </div>
+            <div class="border-x border-gray-200">
+              <p class="text-[9px] text-gray-400 font-bold uppercase mb-1">
+                لایک
+              </p>
+              <p id="statLikes" class="text-xs font-bold text-gray-700">-</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-gray-400 font-bold uppercase mb-1">
+                انتشار
+              </p>
+              <p id="statDate" class="text-xs font-bold text-gray-700">-</p>
+            </div>
+          </div>
+
+          <!-- Description Box -->
+          <div class="mb-8">
+            <h3
+              class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2"
+            >
+              <i class="fas fa-file-alt text-blue-500"></i>
+              توضیحات کامل
+            </h3>
+            <div
+              id="modalDesc"
+              class="text-[11px] text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-2xl whitespace-pre-wrap border border-gray-100 min-h-[100px]"
+            >
+              در حال دریافت اطلاعات...
+            </div>
+          </div>
+
+          <!-- Quality Selection -->
+          <div class="mb-4">
+            <h3 class="text-sm font-bold text-gray-800 mb-3">
+              انتخاب کیفیت جهت ارسال به بله:
+            </h3>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                onclick="setQuality('Highest')"
+                class="q-btn bg-gray-100 py-3 rounded-xl text-xs font-bold transition-all border-2 border-transparent"
+                data-q="Highest"
+              >
+                Highest
+              </button>
+              <button
+                onclick="setQuality('1080p')"
+                class="q-btn bg-gray-100 py-3 rounded-xl text-xs font-bold transition-all border-2 border-transparent"
+                data-q="1080p"
+              >
+                1080p
+              </button>
+              <button
+                onclick="setQuality('720p')"
+                class="q-btn bg-gray-100 py-3 rounded-xl text-xs font-bold transition-all border-2 border-transparent"
+                data-q="720p"
+              >
+                720p
+              </button>
+              <button
+                onclick="setQuality('480p')"
+                class="q-btn bg-gray-100 py-3 rounded-xl text-xs font-bold transition-all border-2 border-transparent"
+                data-q="480p"
+              >
+                480p
+              </button>
+              <button
+                onclick="setQuality('360p')"
+                class="q-btn bg-gray-100 py-3 rounded-xl text-xs font-bold transition-all border-2 border-transparent"
+                data-q="360p"
+              >
+                360p
+              </button>
+              <button
+                onclick="setQuality('MP3')"
+                class="q-btn bg-gray-100 py-3 rounded-xl text-xs font-bold transition-all border-2 border-transparent"
+                data-q="MP3"
+              >
+                MP3
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Footer -->
+        <div class="p-4 bg-gray-50 border-t shrink-0">
+          <button
+            onclick="sendToBale()"
+            class="w-full bale-gradient text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+          >
+            <i class="fas fa-paper-plane"></i>
+            تایید و ارسال به بات بله
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_KEY = "AIzaSyBy0geMmpPTgbwe-vxe87y83k2e3qpem_s"; // کلید یوتیوب خود را اینجا قرار دهید
+      const BOT_ID = "botimabot"; // یوزرنیم بات بله شما (بدون @)
+
+      let currentId = null;
+      let selectedQuality = "Highest";
+
+      function closeIntro() {
+        document.getElementById("introOverlay").style.opacity = "0";
+        setTimeout(() => {
+          document.getElementById("introOverlay").style.visibility = "hidden";
+          document.getElementById("mainContent").classList.remove("opacity-0");
+        }, 500);
+      }
+
+      function setQuality(q) {
+        selectedQuality = q;
+        document.querySelectorAll(".q-btn").forEach((btn) => {
+          const isSelected = btn.getAttribute("data-q") === q;
+          btn.className = `q-btn py-3 rounded-xl text-xs font-bold transition-all border-2 ${isSelected ? "bg-blue-600 text-white border-blue-200" : "bg-gray-100 text-gray-700 border-transparent"}`;
+        });
+      }
+
+      async function searchYoutube() {
+        const query = document.getElementById("searchInput").value;
+        if (!query) return;
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML =
+          '<div class="flex justify-center py-20"><div class="loader rounded-full border-4 border-gray-200 h-10 w-10"></div></div>';
+        try {
+          const res = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`,
+          );
+          const data = await res.json();
+          renderResults(data.items || []);
+        } catch (e) {
+          resultsDiv.innerHTML =
+            '<p class="text-center text-red-500 py-10">خطا در برقراری ارتباط!</p>';
+        }
+      }
+
+      function renderResults(items) {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = items.length
+          ? ""
+          : '<p class="text-center text-gray-500 py-10">نتیجه‌ای یافت نشد.</p>';
+        items.forEach((item) => {
+          const v = item.snippet;
+          const id = item.id.videoId;
+          const card = document.createElement("div");
+          card.className =
+            "bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex h-24 cursor-pointer active:scale-95 transition-transform";
+          card.onclick = () => showDetails(id, v.title, v.thumbnails.high.url);
+          card.innerHTML = `
+                    <img src="${v.thumbnails.medium.url}" class="w-32 h-full object-cover">
+                    <div class="p-3 flex flex-col justify-center overflow-hidden flex-1">
+                        <h3 class="text-xs font-bold text-gray-800 line-clamp-2 leading-tight">${v.title}</h3>
+                        <p class="text-[9px] text-gray-400 mt-2 font-bold">${v.channelTitle}</p>
+                    </div>
+                `;
+          resultsDiv.appendChild(card);
+        });
+      }
+
+      async function showDetails(id, title, thumb) {
+        currentId = id;
+        document.getElementById("videoModal").classList.remove("hidden");
+        document.getElementById("modalTitle").innerText = title;
+        document.getElementById("modalThumb").src = thumb;
+        document.getElementById("modalDesc").innerText =
+          "در حال دریافت توضیحات ویدیو از سرور...";
+
+        // Reset Stats
+        document.getElementById("statViews").innerText = "-";
+        document.getElementById("statLikes").innerText = "-";
+        document.getElementById("statDate").innerText = "-";
+
+        setQuality("Highest");
+
+        try {
+          const res = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${id}&key=${API_KEY}`,
+          );
+          const data = await res.json();
+          const video = data.items[0];
+          if (video) {
+            document.getElementById("modalDesc").innerText =
+              video.snippet.description ||
+              "توضیحاتی برای این ویدیو ثبت نشده است.";
+            document.getElementById("statViews").innerText = parseInt(
+              video.statistics.viewCount,
+            ).toLocaleString("fa-IR");
+            document.getElementById("statLikes").innerText = parseInt(
+              video.statistics.likeCount || 0,
+            ).toLocaleString("fa-IR");
+            const date = new Date(video.snippet.publishedAt);
+            document.getElementById("statDate").innerText =
+              date.toLocaleDateString("fa-IR");
+          }
+        } catch (e) {
+          document.getElementById("modalDesc").innerText =
+            "خطا در دریافت اطلاعات کامل ویدیو. احتمالاً محدودیت API رخ داده است.";
+        }
+      }
+
+      function closeModal() {
+        document.getElementById("videoModal").classList.add("hidden");
+      }
+
+      function sendToBale() {
+        if (!currentId) return;
+        window.location.href = `https://ble.ir/${BOT_ID}?start=dl_${currentId}_${selectedQuality}`;
+      }
+
+      window.onclick = (e) => {
+        if (e.target.id === "videoModal") closeModal();
+      };
+    </script>
+  </body>
+</html>
